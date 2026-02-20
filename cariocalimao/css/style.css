@@ -1,0 +1,283 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #F9DB6D;
+    font-family: Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    color: #000;
+}
+
+/* Header/Title */
+header {
+    text-align: center;
+    padding: 4rem 1rem 2rem 1rem;
+}
+
+h1 {
+    font-family: Helvetica, Arial, sans-serif;
+    color: #000;
+    font-size: 3.5rem;
+    font-weight: normal;
+    letter-spacing: 0.05em;
+}
+
+header a {
+    text-decoration: none;
+    color: inherit;
+    transition: opacity 0.3s ease;
+}
+
+header a:hover {
+    opacity: 0.7;
+}
+
+/* Navigation */
+nav {
+    position: fixed;
+    bottom: 0.5rem;
+    left: 0;
+    right: 0;
+    padding: 1.5rem;
+    text-align: center;
+    background-color: #F9DB6D;
+}
+
+nav a {
+    font-family: Helvetica, Arial, sans-serif;
+    color: #000;
+    text-decoration: underline;
+    text-decoration-color: #000;
+    font-size: 1.2rem;
+    margin: 0 6rem;
+    transition: opacity 0.3s ease;
+}
+
+nav a:hover {
+    opacity: 0.6;
+}
+
+/* Main content area */
+main {
+    flex: 1;
+    padding: 2rem 1rem;
+    padding-bottom: 5rem; /* Space for fixed nav */
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Grid layout for visual categories (rabiscos, fotografias) */
+.posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    padding: 2rem 0;
+}
+
+.post-card {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.post-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.post-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.post-card-content {
+    padding: 1rem;
+}
+
+.post-card h3 {
+    font-size: 1rem;
+    font-weight: normal;
+    margin-bottom: 0.5rem;
+}
+
+.post-card .post-date {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+/* List layout for text categories (crónicas, rascunhos) */
+.posts-list {
+    list-style: none;
+    padding: 2rem 0;
+}
+
+.post-item {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.post-item:last-child {
+    border-bottom: none;
+}
+
+.post-item a {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.post-item h2 {
+    font-size: 1.5rem;
+    font-weight: normal;
+    margin-bottom: 0.5rem;
+    transition: opacity 0.3s ease;
+}
+
+.post-item:hover h2 {
+    opacity: 0.6;
+}
+
+.post-item .post-date {
+    font-size: 0.85rem;
+    opacity: 0.7;
+    margin-bottom: 0.75rem;
+}
+
+.post-item .post-excerpt {
+    font-size: 1rem;
+    line-height: 1.6;
+    opacity: 0.8;
+}
+
+/* Individual post page */
+.post-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    padding-bottom: 5rem;
+}
+
+.post-content h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    text-align: left;
+}
+
+.post-content .post-meta {
+    font-size: 0.85rem;
+    opacity: 0.7;
+    margin-bottom: 2rem;
+}
+
+.post-content .post-body {
+    font-size: 1rem;
+    line-height: 1.8;
+}
+
+.post-content .post-body img {
+    max-width: 100%;
+    height: auto;
+    margin: 2rem 0;
+    border-radius: 4px;
+}
+
+.post-content .post-body p {
+    margin-bottom: 1.5rem;
+}
+
+.post-content .post-body h2,
+.post-content .post-body h3 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: normal;
+}
+
+.back-link {
+    display: inline-block;
+    margin-top: 2rem;
+    text-decoration: none;
+    color: #000;
+    font-size: 0.9rem;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.back-link:hover {
+    opacity: 1;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    header {
+        padding: 3rem 1rem 1.5rem 1rem;
+    }
+    
+    h1 {
+        font-size: 2.5rem;
+    }
+    
+    nav {
+        bottom: 0.5rem;
+    }
+    
+    nav a {
+        font-size: 1rem;
+        margin: 0 4.5rem;
+        text-decoration: underline;
+        text-decoration-color: #000;
+    }
+    
+    .posts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+    
+    .post-item h2 {
+        font-size: 1.25rem;
+    }
+    
+    main {
+        padding: 1rem;
+        padding-bottom: 5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    header {
+        padding: 2.5rem 1rem 1rem 1rem;
+    }
+    
+    h1 {
+        font-size: 2rem;
+    }
+    
+    nav {
+        bottom: 0.5rem;
+        padding: 1rem;
+    }
+    
+    nav a {
+        font-size: 0.9rem;
+        display: block;
+        margin: 0.5rem 0;
+        text-decoration: underline;
+        text-decoration-color: #000;
+    }
+    
+    .posts-grid {
+        grid-template-columns: 1fr;
+    }
+}

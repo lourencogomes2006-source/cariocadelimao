@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - carioca de limão</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .admin-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            padding-bottom: 8rem;
+        }
+        
+        .admin-form {
+            background-color: rgba(255, 255, 255, 0.3);
+            padding: 2rem;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: normal;
+            font-size: 1rem;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 1rem;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .form-group textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+        
+        .form-group small {
+            display: block;
+            margin-top: 0.25rem;
+            opacity: 0.7;
+            font-size: 0.85rem;
+        }
+        
+        .btn {
+            background-color: #000;
+            color: #F9DB6D;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 4px;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+        
+        .btn:hover {
+            opacity: 0.8;
+        }
+        
+        .output-section {
+            background-color: rgba(255, 255, 255, 0.3);
+            padding: 2rem;
+            border-radius: 4px;
+            margin-top: 2rem;
+        }
+        
+        .output-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: normal;
+        }
+        
+        .output-box {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .copy-btn {
+            background-color: #000;
+            color: #F9DB6D;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+        
+        .instructions {
+            background-color: rgba(255, 255, 255, 0.3);
+            padding: 1.5rem;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+        }
+        
+        .instructions h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            font-weight: normal;
+        }
+        
+        .instructions ol {
+            margin-left: 1.5rem;
+            line-height: 1.8;
+        }
+        
+        .instructions li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .success-message {
+            background-color: rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            color: #000;
+        }
+
+        .drop-zone {
+            margin-top: 0.75rem;
+            padding: 1.5rem;
+            border: 2px dashed rgba(0, 0, 0, 0.5);
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .drop-zone--active {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .drop-zone__text {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html"><h1>carioca de limão</h1></a>
+    </header>
+    
+    <main>
+        <div class="admin-container">
+            <div class="instructions">
+                <h2>Como criar um novo post</h2>
+                <ol>
+                    <li>Preencha o formulário abaixo</li>
+                    <li>Opcional: adicione uma fotografia (URL ou arrastando o ficheiro)</li>
+                    <li>Clique em "Publicar"</li>
+                    <li>O post fica automaticamente visível na categoria escolhida</li>
+                </ol>
+            </div>
+            
+            <form class="admin-form" id="post-form">
+                <div class="form-group">
+                    <label for="category">Categoria *</label>
+                    <select id="category" name="category" required>
+                        <option value="">Selecione uma categoria</option>
+                        <option value="crónicas">crónicas</option>
+                        <option value="rascunhos">rascunhos</option>
+                        <option value="rabiscos">rabiscos</option>
+                        <option value="fotografias">fotografias</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="title">Título *</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="date">Data *</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+                
+                <div class="form-group" id="image-group" style="display: none;">
+                    <label for="image">URL da Imagem</label>
+                    <input type="text" id="image" name="image" placeholder="ex: images/fotografias/minha-foto.jpg ou https://exemplo.com/imagem.jpg">
+                    <small>Opcional. Para categorias visuais (rabiscos, fotografias)</small>
+                    <div id="drop-zone" class="drop-zone">
+                        <p class="drop-zone__text">Arraste e largue aqui a fotografia ou clique para selecionar.</p>
+                        <input type="file" id="image-file" accept="image/*" style="display: none;">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="excerpt">Resumo (opcional)</label>
+                    <textarea id="excerpt" name="excerpt" placeholder="Breve descrição do post..."></textarea>
+                    <small>Se deixar em branco, será gerado automaticamente a partir do conteúdo</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="content">Conteúdo *</label>
+                    <textarea id="content" name="content" required placeholder="Escreva o conteúdo do post aqui. Pode usar Markdown:&#10;&#10;## Subtítulo&#10;&#10;**negrito** e *itálico*&#10;&#10;![Descrição](url-da-imagem)"></textarea>
+                    <small>Pode usar Markdown para formatação</small>
+                </div>
+                
+                <button type="submit" class="btn">Publicar</button>
+            </form>
+
+            <div id="submit-status" class="success-message" style="display: none;"></div>
+        </div>
+    </main>
+    
+    <nav>
+        <a href="crónicas.html">crónicas</a>
+        <a href="rascunhos.html">rascunhos</a>
+        <a href="rabiscos.html">rabiscos</a>
+        <a href="fotografias.html">fotografias</a>
+    </nav>
+    
+    <script src="js/admin.js"></script>
+</body>
+</html>
