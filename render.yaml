@@ -1,0 +1,15 @@
+# Render.yaml configuration for deploying the backend server
+
+services:
+  - type: web
+    name: cariocadelimao-backend
+    env: python
+    plan: starter
+    runtime: python3
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python app.py"
+    autoDeploy: true
+    healthCheckPath: /health
+    routes:
+      - src: /api/
+        dest: /api/
