@@ -1,1 +1,20 @@
-{\n  "version": 2,\n  "builds": [{\n    "src": "src/index.js",\n    "use": "@vercel/node"\n  }],\n  "routes": [{\n    "src": "/(.*)",\n    "dest": "src/index.js"\n  }]\n}
+{
+  "buildCommand": "cd cariocalimao/server && npm install",
+  "outputDirectory": "cariocalimao",
+  "framework": "other",
+  "functions": {
+    "cariocalimao/server/index.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "cariocalimao/server/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/cariocalimao/$1"
+    }
+  ]
+}
