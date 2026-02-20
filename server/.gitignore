@@ -1,0 +1,8 @@
+# Node modules
+node_modules/
+
+# Uploads
+uploads/
+
+# macOS specific files
+.DS_Store
