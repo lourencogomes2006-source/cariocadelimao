@@ -1,6 +1,8 @@
 // Configurar a morada da API
 // Desenvolvimento: http://localhost:4000
-const API_BASE = 'http://localhost:4000';
+const API_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:4000' 
+  : '';
 
 function formatDate(dateString) {
   if (!dateString) return '';
