@@ -3,11 +3,32 @@ const cors = require('cors');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
-const { PORT, UPLOAD_DIR, ALLOWED_ORIGINS } = require('./config');
+const {
+  PORT,
+  UPLOAD_DIR,
+  ALLOWED_ORIGINS,
+  ADMIN_API_KEY,
+  MAX_UPLOAD_SIZE_BYTES,
+} = require('./config');
 const { getAllPosts, getPostById, addPost } = require('./data/store');
 
 const app = express();
+const CATEGORY_UPLOAD_DIRS = Object.freeze({
+  'crónicas': 'cronicas',
+  rascunhos: 'rascunhos',
+  rabiscos: 'rabiscos',
+  fotografias: 'fotografias',
+});
+
+const ALLOWED_IMAGE_MIME_TYPES = new Map([
+  ['image/jpeg', '.jpg'],
+  ['image/png', '.png'],
+  ['image/webp', '.webp'],
+  ['image/gif', '.gif'],
+  ['image/avif', '.avif'],
+]);
 
 // Ensure uploads directory exists
 function ensureUploadDir() {
@@ -17,6 +38,12 @@ function ensureUploadDir() {
 }
 
 ensureUploadDir();
+
+if (!ADMIN_API_KEY) {
+  console.warn(
+    'ADMIN_API_KEY is not set. POST /api/posts is disabled until it is configured.'
+  );
+}
 
 // CORS
 app.use(
@@ -35,31 +62,113 @@ app.use(
 app.use(express.json());
 
 // Serve uploaded images
-app.use('/uploads', express.static(UPLOAD_DIR));
+app.use(
+  '/uploads',
+  express.static(UPLOAD_DIR, {
+    dotfiles: 'deny',
+    index: false,
+  })
+);
 
-// Multer storage configuration
-const storage = multer.diskStorage({
-  destination(req, file, cb) {
-    const category = req.body.category || 'misc';
-    const safeCategory = String(category).toLowerCase();
-    const dir = path.join(UPLOAD_DIR, safeCategory);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    cb(null, dir);
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    files: 1,
+    fileSize: MAX_UPLOAD_SIZE_BYTES,
   },
-  filename(req, file, cb) {
-    const timestamp = Date.now();
-    const ext = path.extname(file.originalname) || '.jpg';
-    cb(null, `${timestamp}${ext}`);
+  fileFilter(req, file, cb) {
+    if (!ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype)) {
+      cb(new Error('Only JPG, PNG, WEBP, GIF, and AVIF images are allowed.'));
+      return;
+    }
+    cb(null, true);
   },
 });
 
-const upload = multer({ storage });
+function runImageUpload(req, res) {
+  return new Promise((resolve, reject) => {
+    upload.single('image')(req, res, (err) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve();
+    });
+  });
+}
 
 // Helper to generate a simple unique id
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+function requireAdminApiKey(req, res, next) {
+  if (!ADMIN_API_KEY) {
+    return res
+      .status(503)
+      .json({ error: 'Server missing ADMIN_API_KEY configuration.' });
+  }
+
+  const authHeader = req.get('authorization') || '';
+  const bearerToken = authHeader.toLowerCase().startsWith('bearer ')
+    ? authHeader.slice(7).trim()
+    : '';
+  const providedKey = req.get('x-admin-key') || bearerToken;
+
+  if (!providedKey || providedKey !== ADMIN_API_KEY) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  return next();
+}
+
+function ensureCategoryUploadDir(category) {
+  const folder = CATEGORY_UPLOAD_DIRS[category];
+  const categoryDir = path.join(UPLOAD_DIR, folder);
+  if (!fs.existsSync(categoryDir)) {
+    fs.mkdirSync(categoryDir, { recursive: true });
+  }
+  return { folder, categoryDir };
+}
+
+function saveUploadedImage(file, category) {
+  const ext = ALLOWED_IMAGE_MIME_TYPES.get(file.mimetype);
+  const { folder, categoryDir } = ensureCategoryUploadDir(category);
+  const filename = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${ext}`;
+  const outputPath = path.join(categoryDir, filename);
+  fs.writeFileSync(outputPath, file.buffer);
+  return `/uploads/${encodeURIComponent(folder)}/${encodeURIComponent(filename)}`;
+}
+
+function isSafeImageUrl(rawUrl) {
+  if (typeof rawUrl !== 'string') return false;
+  const value = rawUrl.trim();
+  if (!value) return false;
+  if (value.startsWith('//')) return false;
+  if (/[\u0000-\u001F\u007F<>"'`]/.test(value)) return false;
+
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value)) {
+    try {
+      const parsed = new URL(value);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function handleUploadError(err, res) {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        error: `Image too large. Maximum allowed size is ${MAX_UPLOAD_SIZE_BYTES} bytes.`,
+      });
+    }
+    return res.status(400).json({ error: err.message });
+  }
+  return res.status(400).json({ error: err.message || 'Invalid upload request.' });
 }
 
 // --- Routes ---
@@ -100,7 +209,13 @@ app.get('/api/posts/:id', (req, res) => {
 });
 
 // Create a new post (with optional image upload)
-app.post('/api/posts', upload.single('image'), (req, res) => {
+app.post('/api/posts', requireAdminApiKey, async (req, res) => {
+  try {
+    await runImageUpload(req, res);
+  } catch (err) {
+    return handleUploadError(err, res);
+  }
+
   try {
     const { category, title, date, excerpt, content } = req.body;
 
@@ -108,21 +223,18 @@ app.post('/api/posts', upload.single('image'), (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const allowedCategories = ['crónicas', 'rascunhos', 'rabiscos', 'fotografias'];
-    if (!allowedCategories.includes(category)) {
+    if (!Object.prototype.hasOwnProperty.call(CATEGORY_UPLOAD_DIRS, category)) {
       return res.status(400).json({ error: 'Invalid category' });
     }
 
     let imageUrl = null;
     if (req.file) {
-      // Public URL relative to this server
-      const relPath = path
-        .relative(path.join(__dirname), req.file.path)
-        .replace(/\\/g, '/');
-      imageUrl = `/${relPath}`;
+      imageUrl = saveUploadedImage(req.file, category);
     } else if (req.body.imageUrl) {
-      // Optional direct URL from the admin form
-      imageUrl = req.body.imageUrl;
+      if (!isSafeImageUrl(req.body.imageUrl)) {
+        return res.status(400).json({ error: 'Invalid image URL.' });
+      }
+      imageUrl = req.body.imageUrl.trim();
     }
 
     const id = generateId();
@@ -158,4 +270,3 @@ app.post('/api/posts', upload.single('image'), (req, res) => {
 app.listen(PORT, () => {
   console.log(`carioca backend listening on http://localhost:${PORT}`);
 });
-

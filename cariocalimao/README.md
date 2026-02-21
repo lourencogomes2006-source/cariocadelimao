@@ -24,9 +24,11 @@ A partir de agora os posts são guardados automaticamente no backend através da
      ```bash
      cd server
      npm install   # apenas na primeira vez
+     export ADMIN_API_KEY='defina-uma-chave-forte'
      npm start
      ```
    - O backend ficará disponível em `http://localhost:4000`
+   - A publicação de posts requer a mesma chave no campo **“Chave de Administração”** da página `admin.html`
 2. Abra o frontend (por exemplo, com o servidor simples abaixo) e aceda a `admin.html`:
    ```bash
    python -m http.server 8000
@@ -46,8 +48,7 @@ A partir de agora os posts são guardados automaticamente no backend através da
 
 A morada da API é configurada em:
 
-- `js/main.js` → `const API_BASE = 'http://localhost:4000';`
-- `js/admin.js` → `const API_BASE = 'http://localhost:4000';`
+- `js/main.js` e `js/admin.js` → `const API_BASE = 'http://localhost:4000';` (em desenvolvimento local)
 
 Quando publicar o backend noutro servidor (por exemplo Render / Railway), altere estas linhas para o novo endereço, por exemplo:
 

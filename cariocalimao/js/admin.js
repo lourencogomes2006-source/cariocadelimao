@@ -2,6 +2,22 @@
 // Em desenvolvimento: http://localhost:4000
 // Em produção: altere para o domínio onde o backend estiver hospedado
 const API_BASE = 'http://localhost:4000';
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/avif',
+]);
+
+function isAllowedImageFile(file) {
+  if (!file) return true;
+  if (!ALLOWED_IMAGE_MIME_TYPES.has(file.type)) {
+    return false;
+  }
+  return file.size <= MAX_IMAGE_SIZE_BYTES;
+}
 
 // Mostrar/esconder campo de imagem consoante a categoria
 document.getElementById('category').addEventListener('change', function () {
@@ -39,6 +55,12 @@ if (dropZone && imageFileInput) {
   imageFileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (!isAllowedImageFile(file)) {
+        alert('A imagem deve ser JPG/PNG/WEBP/GIF/AVIF e até 5MB.');
+        imageFileInput.value = '';
+        selectedImageFile = null;
+        return;
+      }
       selectedImageFile = file;
       dropZone.querySelector('.drop-zone__text').textContent = `Ficheiro selecionado: ${file.name}`;
     }
@@ -59,6 +81,10 @@ if (dropZone && imageFileInput) {
     setDropZoneActive(false);
     const file = e.dataTransfer.files[0];
     if (file) {
+      if (!isAllowedImageFile(file)) {
+        alert('A imagem deve ser JPG/PNG/WEBP/GIF/AVIF e até 5MB.');
+        return;
+      }
       selectedImageFile = file;
       dropZone.querySelector('.drop-zone__text').textContent = `Ficheiro selecionado: ${file.name}`;
     }
@@ -72,6 +98,7 @@ document.getElementById('post-form').addEventListener('submit', async function (
   const category = document.getElementById('category').value;
   const title = document.getElementById('title').value;
   const date = document.getElementById('date').value;
+  const adminKey = document.getElementById('admin-key').value.trim();
   const imageUrlInput = document.getElementById('image').value;
   const excerpt = document.getElementById('excerpt').value;
   const content = document.getElementById('content').value;
@@ -79,6 +106,11 @@ document.getElementById('post-form').addEventListener('submit', async function (
 
   if (!category || !title || !date || !content) {
     alert('Por favor, preencha todos os campos obrigatórios.');
+    return;
+  }
+
+  if (!adminKey) {
+    alert('Introduza a chave de administração.');
     return;
   }
 
@@ -105,6 +137,9 @@ document.getElementById('post-form').addEventListener('submit', async function (
   try {
     const response = await fetch(`${API_BASE}/api/posts`, {
       method: 'POST',
+      headers: {
+        'X-Admin-Key': adminKey,
+      },
       body: formData,
     });
 
@@ -128,7 +163,9 @@ document.getElementById('post-form').addEventListener('submit', async function (
     }
 
     // Limpar formulário
+    const currentAdminKey = adminKey;
     this.reset();
+    document.getElementById('admin-key').value = currentAdminKey;
     selectedImageFile = null;
     if (dropZone) {
       dropZone.querySelector('.drop-zone__text').textContent =
@@ -148,4 +185,3 @@ document.getElementById('post-form').addEventListener('submit', async function (
     }
   }
 });
-

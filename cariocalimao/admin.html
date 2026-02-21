@@ -177,6 +177,12 @@
             
             <form class="admin-form" id="post-form">
                 <div class="form-group">
+                    <label for="admin-key">Chave de Administração *</label>
+                    <input type="password" id="admin-key" name="admin-key" required autocomplete="off">
+                    <small>Obrigatória para publicar no backend protegido.</small>
+                </div>
+
+                <div class="form-group">
                     <label for="category">Categoria *</label>
                     <select id="category" name="category" required>
                         <option value="">Selecione uma categoria</option>
