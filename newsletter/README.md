@@ -1,0 +1,10 @@
+# Carioca Semanal launch
+
+1. Create separate production and test Brevo lists. For each, create a Portuguese embedded email form with double confirmation, using Helvetica/Arial and the site's yellow background (#F9DB6D). Use “Endereço de email”, “Inscrever-me” and “Consulta o teu email para confirmares a inscrição.” Translate the confirmation template, success page and unsubscribe page. Verify the sending address in Brevo.
+2. In Vercel set BREVO_FORM_URL to the test form's iframe src for Preview and the production form's iframe src for Production. Rebuild the preview. Check the form on the crónicas listing and a crónica article on mobile. Subscribe a test address and verify that it enters only the test list after confirmation.
+3. Configure GitHub Actions secret BREVO_API_KEY and repository variables BREVO_SENDER, BREVO_LIST_ID and BREVO_TEST_LIST_ID. Leave NEWSLETTER_ACTIVE unset until ready. The workflow requires contents write access to newsletter-state.
+4. Preview without credentials using python3 newsletter/digest.py preview. For a live test before merging, run python3 newsletter/digest.py test from this branch in a trusted shell with those four Brevo settings. This sends to the dedicated test list. Verify the subject, links, mobile layout, and unsubscribe with a test subscriber.
+5. After the test passes, merge and verify the production form on Vercel. Manually run the Carioca Semanal workflow in baseline mode, then set NEWSLETTER_ACTIVE=true. The weekly workflow follows Lisbon time. A daily reconciliation checks previously requested campaigns.
+6. Inspect failed workflow runs. For a quota hold, retry deliver when credits are available. For an ambiguous send, inspect the recorded campaign in Brevo. If it is still a draft and Brevo confirms delivery was never accepted, send that same campaign once from Brevo after checking quota, then run reconcile. Never create a replacement for a campaign with uncertain delivery status.
+
+Run the offline checks with python3 -m unittest discover -s newsletter.

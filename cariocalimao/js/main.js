@@ -312,8 +312,23 @@ async function loadPost() {
     backLink.className = 'back-link';
     backLink.textContent = `← Voltar a ${categoryName}`;
     container.appendChild(backLink);
+    if (post.category === 'crónicas') appendNewsletter(container);
   } catch (err) {
     console.error(err);
     setContainerMessage(container, 'Erro ao carregar o post.');
   }
+}
+
+function appendNewsletter(parent) {
+  if (!window.newsletterFormUrl) return;
+  const section = document.createElement('section');
+  section.className = 'newsletter';
+  const heading = document.createElement('h2');
+  heading.textContent = 'Novas crónicas todas as terças, inscreve-te!';
+  const form = document.createElement('iframe');
+  form.src = window.newsletterFormUrl;
+  form.title = 'Inscrição na Carioca Semanal';
+  form.loading = 'lazy';
+  section.append(heading, form);
+  parent.appendChild(section);
 }
