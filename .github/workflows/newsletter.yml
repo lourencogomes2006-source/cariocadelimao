@@ -1,0 +1,52 @@
+name: Carioca Semanal
+on:
+  schedule:
+    - cron: '0 19 * * 2'
+      timezone: Europe/Lisbon
+    - cron: '23 20 * * *'
+      timezone: Europe/Lisbon
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Newsletter operation
+        type: choice
+        options: [preview, test, baseline, deliver, reconcile]
+        default: preview
+permissions:
+  contents: write
+concurrency:
+  group: carioca-semanal
+  cancel-in-progress: false
+jobs:
+  newsletter:
+    if: github.event_name == 'workflow_dispatch' || vars.NEWSLETTER_ACTIVE == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select operation
+        env:
+          MODE: ${{ inputs.mode || (github.event.schedule == '0 19 * * 2' && 'deliver' || 'reconcile') }}
+        run: echo "MODE=$MODE" >> "$GITHUB_ENV"
+      - name: Open delivery history
+        if: env.MODE != 'test' && env.MODE != 'preview'
+        run: |
+          set -eu
+          state="$RUNNER_TEMP/newsletter-state"
+          if git ls-remote --exit-code origin refs/heads/newsletter-state; then
+            git fetch origin refs/heads/newsletter-state
+            git worktree add --detach "$state" FETCH_HEAD
+          else
+            rc=$?
+            [ "$rc" = 2 ] && [ "$MODE" = baseline ] || exit 1
+            git worktree add --detach --no-checkout "$state" HEAD
+            git -C "$state" switch --orphan newsletter-state
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+      - name: Run newsletter
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          BREVO_SENDER: ${{ vars.BREVO_SENDER }}
+          BREVO_LIST_ID: ${{ vars.BREVO_LIST_ID }}
+          BREVO_TEST_LIST_ID: ${{ vars.BREVO_TEST_LIST_ID }}
+        run: python3 newsletter/digest.py "$MODE" --state "$RUNNER_TEMP/newsletter-state/state.json"
