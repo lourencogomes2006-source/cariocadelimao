@@ -2,11 +2,6 @@
   "buildCommand": "node newsletter/build-form.mjs && cd cariocalimao/server && npm install",
   "outputDirectory": "cariocalimao",
   "framework": null,
-  "functions": {
-    "cariocalimao/server/index.js": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "routes": [
     {
       "src": "/api/(.*)",
